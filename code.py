@@ -24,7 +24,6 @@ def bron_kerbosch_original(graph):
             P.remove(v)
             X.add(v)
     
-    # начальный вызов - пустая клика
     R = set()
     P = set(graph.keys())
     X = set()
@@ -36,22 +35,20 @@ def bron_kerbosch_original(graph):
 def bron_kerbosch_tomita(graph):
     result = []
     
-    def func(curr_clique, mb_added, processed):
+    def func(R, P, X):
 
-        if len(mb_added) == 0 and len(processed) == 0:
-            result.append(curr_clique.copy())
+        if len(P) == 0 and len(X) == 0:
+            result.append(R.copy())
             return
         
-        # Выбираем опорную вершину из объединения P и X
-        union = mb_added.union(processed)
+        union = P.union(X)
         main = None
         max_neighbors_in_p = -1
         
         for i in union:
-            # Считаем сколько соседей вершины i находится в P
             neighbors_in_p = 0
             for neighbor in graph[i]:
-                if neighbor in mb_added:
+                if neighbor in P:
                     neighbors_in_p += 1
             
             if neighbors_in_p > max_neighbors_in_p:
@@ -60,32 +57,31 @@ def bron_kerbosch_tomita(graph):
         
         # Перебираем только вершины из P, которые НЕ являются соседями pivot
         vertices_to_process = []
-        for v in mb_added:
+        for v in P:
             if v not in graph[main]:
                 vertices_to_process.append(v)
         
         for v in vertices_to_process:
-            curr_clique.add(v)
+            R.add(v)
             
             # Новые кандидаты: пересечение P с соседями v
-            new_candidates = set()
-            for vertex in mb_added:
+            new_P = set()
+            for vertex in P:
                 if vertex in graph[v]:
-                    new_candidates.add(vertex)
+                    new_P.add(vertex)
             
             # Новые обработанные: пересечение X с соседями v
-            new_processed = set()
-            for vertex in processed:
+            new_X = set()
+            for vertex in X:
                 if vertex in graph[v]:
-                    new_processed.add(vertex)
+                    new_X.add(vertex)
             
-            func(curr_clique, new_candidates, new_processed)
+            func(R, new_P, new_X)
             
-            curr_clique.remove(v)
-            mb_added.remove(v)
-            processed.add(v)
+            R.remove(v)
+            P.remove(v)
+            X.add(v)
     
-    # Начальный вызов
     func(set(), set(graph.keys()), set())
     return result
 
@@ -120,16 +116,16 @@ if __name__ == "__main__":
         5: set()
     }
     
-    algo = 'original'
+    alg = 'original'
     
-    print(f"Алгоритм: {'Томиты' if algo == 'tomita' else 'Брона-Кербоша'}")
+    print(f"Алгоритм: {'Томиты' if alg == 'tomita' else 'Брона-Кербоша'}")
     print("-" * 50)
     
     print("Все максимальные клики:")
-    cliques = find_cliques(graph, algo)
+    cliques = find_cliques(graph, alg)
     for i, clique in enumerate(cliques, 1):
         print(f"Клика {i}: {clique}")
     
-    max_clique = find_maximum_clique(graph, algo)
+    max_clique = find_maximum_clique(graph, alg)
     print(f"\nНаибольшая клика: {max_clique}")
     print(f"Размер наибольшей клики: {len(max_clique)}")
