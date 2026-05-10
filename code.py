@@ -20,7 +20,10 @@ def bron_kerbosch_original(graph):
             new_R = R.copy()
             new_R.add(v)
             
-            bk(new_R, P.intersection(graph[v]), X.intersection(graph[v]))
+            new_P = P.intersection(graph[v])
+            new_X = X.intersection(graph[v])
+
+            bk(new_R, new_P, new_X)
             
             P.remove(v)
             X.add(v)
@@ -60,7 +63,10 @@ def bron_kerbosch_tomita(graph):
         for v in vertices_to_process:
             R.add(v)
             
-            func(R, P.intersection(graph[v]), X.intersection(graph[v]))
+            new_P = P.intersection(graph[v])
+            new_X = X.intersection(graph[v])
+
+            func(R, new_P, new_X)
             
             R.remove(v)
             P.remove(v)
@@ -123,25 +129,23 @@ def read_graph_from_file(filename):
 
 def benchmark_algorithms(graphs_data): #сравнивает производительность алгоритмов и выводит таблицу
     timeout_sec = 15
-    
-    print("\n" + "="*80)
-    print("ТАБЛИЦА СРАВНЕНИЯ АЛГОРИТМОВ")
+
+    print(" ")
+    print("\t\t\tТАБЛИЦА СРАВНЕНИЯ АЛГОРИТМОВ")
     print("="*80)
     print(f"{'Кол-во вершин':<10} | {'Алгоритм':<20} | {'Время (сек)':<15} | {'Макс. клика':<15} ")
-    print("-"*80)
+    print("="*80)
     
     results = {}
     
     for n, graph in graphs_data.items():
         # алгоритм Брона-Кербоша
-        timed_out_orig = False
-
         start_orig = time.perf_counter()
         cliques_orig = bron_kerbosch_original(graph)
         time_orig = time.perf_counter() - start_orig
         max_clique_orig = max(len(c) for c in cliques_orig) if cliques_orig else 0
         
-        print(f"{n:<10} | {'Брон-Кербош':<20} | {time_orig:<15.4f} | {str(max_clique_orig):<15}")
+        print(f"{n:^13} | {'Брон-Кербош':<20} | {time_orig:<15.4f} | {str(max_clique_orig):<15}")
         
         # алгоритм с опорной точкой
         start_tomita = time.perf_counter()
@@ -149,7 +153,7 @@ def benchmark_algorithms(graphs_data): #сравнивает производи�
         time_tomita = time.perf_counter() - start_tomita
         max_clique_tomita = max(len(c) for c in cliques_tomita) if cliques_tomita else 0
         
-        print(f"{n:<10} | {'Томита':<20} | {time_tomita:<15.4f} | {str(max_clique_tomita):<15} | ✓")
+        print(f"{n:^13} | {'Томита':<20} | {time_tomita:<15.4f} | {str(max_clique_tomita):<15} ")
         
         results[n] = {
             'original_time': time_orig,
@@ -158,9 +162,6 @@ def benchmark_algorithms(graphs_data): #сравнивает производи�
             'clique_tomita': find_maximum_clique(graph, 'tomita')
         }
         
-        if not timed_out_orig:
-            speedup = time_orig / time_tomita if time_tomita > 0 else float('inf')
-            print(f"{'':<10} | {'Ускорение Томиты:':<20} | {speedup:<15.2f}x |")
         print("-"*80)
 
     return results
@@ -365,7 +366,7 @@ def main():
         graphs_data[n] = graph
         
         edge_count = sum(len(neighbors) for neighbors in graph.values()) // 2
-        print(f"Граф: {n} вершин, {edge_count} ребер")
+        print(f"{n} вершин, {edge_count} ребер")
     
     benchmark_results = benchmark_algorithms(graphs_data)
     
